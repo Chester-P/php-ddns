@@ -1,24 +1,32 @@
 <?php
 /** 
 * ddns.php
-* This page is used to record clients' IP addr and receive DDNS requests
+* This page is used to receive DDNS requests and record these requests into local MySQL DB
 * 
 *
 * @author      Chester Pang<bo@bearpang.com> 
-* @version     0.1 
+* @version     1.0
 */  
+
+/**
+* Constant definitions 
+*/
+
+define("DB_HOST", "localhost");
+define("DB_USER", "ddns");
+define("DB_PASSWD", "3il7RwmgrmYa0l6R");
+define("DB_DBNAME", "ddns");
 
 
 //Initialise variables
 $user = $_REQUEST["user"];
-$pass = $_REQUEST["pass"];
+$pass = md5($_REQUEST["pass"]);
 $FQDN = $_REQUEST["FQDN"];
 
 if(!isset($_REQUEST["ttl"]))
     $ttl = '60';
 else
     $ttl = $_REQUEST["ttl"];
-
 
 if(!isset($_REQUEST["type"]))
     $type = 'A';
@@ -30,8 +38,10 @@ if(!isset($_REQUEST["ip"]))
 else
     $ip = $_REQUEST["ip"];
 
+
+
 if($FQDN){  //paras test
-    $db = new mysqli("localhost","ddns","3il7RwmgrmYa0l6R","ddns");
+    $db = new mysqli(DB_HOST, DB_USER, DB_PASSWD, DB_DBNAME);
     $stmt = $db -> prepare("SELECT 1 FROM USER WHERE USERNAME=? AND PASSWD=?");
     $stmt -> bind_param("ss", $user, $pass);
     $stmt -> execute();
@@ -47,7 +57,7 @@ if($FQDN){  //paras test
        if($old_ip){   //Record exists, Update
             if($old_ip != $ip){ //Record changed, write log
                 $stmt -> close();
-                $stmt = $db -> prepare("INSERT INTO RR_LOG(USERNAME, FQDN, TTL, TYPE, VALUE, CREATE_TIME) SELECT USERNAME, FQDN, TTL, TYPE, VALUE, CREATE_TIME FROM RR WHERE FQDN = ? and TYPE = ?");
+                $stmt = $db -> prepare("INSERT INTO RR_LOG(USERNAME, FQDN, TTL, TYPE, VALUE, CREATE_TIME, SOA_Serial) SELECT USERNAME, FQDN, TTL, TYPE, VALUE, CREATE_TIME, SOA_Serial FROM RR WHERE FQDN = ? and TYPE = ?");
                 $stmt -> bind_param("ss", $FQDN, $type);
                 $stmt -> execute();
                 $stmt -> close();

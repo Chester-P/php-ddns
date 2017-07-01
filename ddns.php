@@ -1,21 +1,13 @@
 <?php
 /** 
-* ddns.php
-* This page is used to receive DDNS requests and record these requests into local MySQL DB
-* 
-*
-* @author      Chester Pang<bo@bearpang.com> 
-* @version     1.0
-*/  
+ * ddns.php
+ * This page is used to receive DDNS requests and record these requests into local MySQL DB
+ * 
+ *
+ * @author      Chester Pang<bo@bearpang.com> 
+ * @version     1.1
+ */  
 
-/**
-* Constant definitions 
-*/
-
-define("DB_HOST", "localhost");
-define("DB_USER", "ddns");
-define("DB_PASSWD", "3il7RwmgrmYa0l6R");
-define("DB_DBNAME", "ddns");
 
 
 /**
@@ -40,7 +32,9 @@ function getClientIP()
 
 
 
-//Initialise variables
+//Initialise
+require_once("/etc/ddns/DB-config.php"); //require DB connection details
+
 $user = $_REQUEST["user"];
 $pass = md5($_REQUEST["pass"]);
 $FQDN = $_REQUEST["FQDN"];
@@ -109,7 +103,7 @@ if($FQDN){  //paras test
        }
        else{    //Records does not exist, Insert
             $stmt -> close();
-            $stmt = $db -> prepare("INSERT INTO RR (USERNAME, FQDN, TYPE, VALUE, TTL) VALUES(?, ?, ?, ?, ?)");
+            $stmt = $db -> prepare("INSERT INTO RR (USERNAME, FQDN, TYPE, VALUE, TTL, CREATE_TIME) VALUES(?, ?, ?, ?, ?, CURRENT_TIMESTAMP(6))");
             $stmt -> bind_param("ssssi", $user, $FQDN, $type, $ip, $ttl);
             if($stmt -> execute()){
                 echo "Successfully inserted record.";

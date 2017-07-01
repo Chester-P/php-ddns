@@ -1,10 +1,7 @@
-SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
-SET time_zone = "+00:00";
-
 /**
  * This is the table structure for the ddns scirpts
  *
- * version 1.0
+ * version 1.1
  */
 
 
@@ -64,4 +61,4 @@ ALTER TABLE `USER`
 /**
  * Add your login credentials here!
  */
-INSERT INTO USER (USERNAME, PASSWD) VALUES('USERNAME', md5('PASSWORD'));
+#INSERT INTO USER (USERNAME, PASSWD) VALUES('USERNAME', md5('PASSWORD'));

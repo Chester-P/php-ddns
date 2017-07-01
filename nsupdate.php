@@ -1,28 +1,29 @@
 #!/usr/bin/php
 <?php
 /** 
-* nsupdate.php
-* This script is used to update records on local dns server from data in MySQL ddns DB
-*
-* @author      Chester Pang<bo@bearpang.com> 
-* @version     1.0 
-*/  
+ * nsupdate.php
+ * This script is used to update records on local dns server from data in MySQL ddns DB
+ *
+ * @author      Chester Pang<bo@bearpang.com> 
+ * @version     1.1
+ */  
 
 
-//Constant definitions 
-define("SOA_FILE", "/etc/ddns/SOA_Serial"); //file used to save current SOA Serial number
-define("TIMEZONE", "Australia/Sydney");
-define("DB_HOST", "localhost");
-define("DB_USER", "ddns");
-define("DB_PASSWD", "3il7RwmgrmYa0l6R");
-define("DB_DBNAME", "ddns");
-define("ZONE", "bopa.ng");  //dns zone
-define("SOA_PREFIX", "bopa.ng 600 SOA ns-au.bearpang.com root.bopa.ng "); //SOA record before serial
-define("SOA_SUFFIX", " 900 60 604800 60");
 
-//Initialise
-date_default_timezone_set(TIMEZONE);
-$db = new mysqli(DB_HOST, DB_USER, DB_PASSWD, DB_DBNAME);
+/*
+ * Read from stdin
+ *
+ * @return string $input    User's input
+ */
+
+function stdin(){  
+    $fp = fopen('/dev/stdin', 'r');  
+    $input = fgets($fp, 255);  
+    fclose($fp);  
+    $input = chop($input);  
+    echo "-----------------------------------------\n"; //to devide input fileds    
+    return $input;  
+} 
 
 
 /** 
@@ -58,6 +59,135 @@ function SOA_Serial_INC(){
     return $SOA_Serial_updated;
 
 }
+
+
+
+/**
+ * If first time running, run setup
+ */
+if(!file_exists("/etc/ddns/nsupdate-config.php") || (isset($argv[1]) ? $argv[1] == "reconfigure" : false)){
+    echo "No configuation file detected, generating one...\n";
+    if(!file_exists("/etc/ddns"))
+        mkdir("/etc/ddns");
+
+    echo "Please input your timezone. e.g. Asia/Shanghai or Australia/Sydney\n";
+    echo "For more information about php timezone, please visit http://php.net/manual/en/timezones.php\n";
+    $TIMEZONE = stdin();
+    echo "Please specify your dns zone name, please refer to your bind configuration file.\n";
+    $ZONE = stdin();
+    echo "Please input your SOA record TTL. Press Enter to use the default value. (600)\n";
+    $input = stdin();
+    $TTL = $input ? $input : "600";
+    echo "Please input your primary dns server for SOA record.\n";
+    $dns = stdin();
+    echo "Please input your email for SOA record. Use dot to replace @. e.g. name.example.com\n";
+    $email = stdin();
+    $SOA_PREFIX = $ZONE . " " . $TTL . " SOA " . $dns . " " . $email . " ";
+    echo "Please input your Refresh, Retry, Expire, Default TTL values. Use single space to devide these values.\n";
+    echo "Press Enter for defualt value. (900 60 604800 60)\n";
+    $input = stdin();
+    $SOA_SUFFIX = $input ? " " . $input : " 900 60 604800 60";
+    echo "Please input your MySQL Database Host. Press Enter to use default host. (localhost)\n";
+    $input = stdin();
+    $DB_HOST = $input ? $input : "localhost";
+    echo "Please input your MySQL Database username.\n";
+    $DB_USER = stdin();
+    echo "Please input your password.\n";
+    $DB_PASSWD = stdin();
+    echo "Please input your databse name used for this ddns script.\n";
+    $DB_DBNAME = stdin();
+    echo "Please input a path to the file to place ddns.php under your webroot\n";
+    echo "Press Enter for defualt value. (/var/www/html/)\n";
+    $input = stdin();
+    $WEB_ROOT = $input ? $input : "/var/www/html/";
+    echo "Please enter your ddns.php auth username and password.\n";
+    $usr = stdin();
+    echo "Password:";
+    $passwd = stdin();
+
+    echo "Starting to write configuration files...\n";
+    $file1 = 
+    "<?php
+/** 
+ * nsupdate-config.php
+ * This is a automatically generated configuration file, used to define constant needed for nsupdate.php
+ *
+ * @see        https:/dev.bopa.ng/chester/php-ddns
+ * @version    1.0 
+ */  
+
+//Constant definitions 
+define(\"SOA_FILE\", \"/etc/ddns/SOA_Serial\"); //file used to save current SOA Serial number
+define(\"TIMEZONE\", \"$TIMEZONE\");
+define(\"ZONE\", \"$ZONE\");  //dns zone
+define(\"SOA_PREFIX\", \"$SOA_PREFIX\"); //SOA record before serial
+define(\"SOA_SUFFIX\", \"$SOA_SUFFIX\");
+
+
+?>";
+    $file2 = 
+    "<?php
+/** 
+ * DB-config.php
+ * This is a automatically generated configuration file, used to define MySQL connection details for nsupdate.php and ddns.php
+ *
+ * @see        https:/dev.bopa.ng/chester/php-ddns
+ * @version    1.0 
+ */  
+
+define(\"DB_HOST\", \"$DB_HOST\");
+define(\"DB_USER\", \"$DB_USER\");
+define(\"DB_PASSWD\", \"$DB_PASSWD\");
+define(\"DB_DBNAME\", \"$DB_DBNAME\");
+?>";
+
+    $handle1 = fopen("/etc/ddns/nsupdate-config.php", "w");
+    $handle2 = fopen("/etc/ddns/DB-config.php", "w");    
+
+    if(!fwrite($handle1, $file1) || !fwrite($handle2, $file2))
+        die("Write config file failed. Please check permissions.\n"); 
+    else
+        echo "Successfully wrote configuration files.\n";
+    fclose($handle1);
+    fclose($handle2);
+
+    echo "Initialising database structure.\n";
+    $sqlfile = fopen("ddns.sql", "r");
+    $sql = fread($sqlfile, filesize("ddns.sql"));
+    $sql .= "INSERT INTO USER (USERNAME, PASSWD) VALUES('$usr', md5('$passwd'));";
+    $db = new mysqli($DB_HOST, $DB_USER, $DB_PASSWD, $DB_DBNAME);
+    $ret = $db -> multi_query($sql); 
+    if($ret === false) { 
+        die ($db -> error); 
+    } 
+    while (mysqli_more_results($db)) { 
+        if (mysqli_next_result($db) === false) { 
+            echo $db -> error; 
+            echo "\r\n";
+            die("Failed."); 
+            break; 
+        } 
+    } 
+
+    echo "Database initialised successfully.\n";
+
+
+    if(!copy("ddns.php", $WEB_ROOT . "ddns.php")){
+        die("Failed to copy ddns.php to " . $WEB_ROOT . "\nCheck Permission!\n");
+    }
+
+    echo "Configuration process complete.\n";
+    echo ("Please run this script again manually or add it into crontab.\n");
+    exit();
+}
+
+
+
+//Initialise
+require("/etc/ddns/nsupdate-config.php");
+require("/etc/ddns/DB-config.php");
+date_default_timezone_set(TIMEZONE);
+$db = new mysqli(DB_HOST, DB_USER, DB_PASSWD, DB_DBNAME);
 
 
 //=============================================================

@@ -18,6 +18,28 @@ define("DB_PASSWD", "3il7RwmgrmYa0l6R");
 define("DB_DBNAME", "ddns");
 
 
+/**
+ * Retrive user's real ip address
+ *
+ * @since 1.0
+ *
+ * @return string $ip    User's ip address
+ */
+
+function getClientIP()  
+{  
+    if (getenv("HTTP_CLIENT_IP"))  
+        $ip = getenv("HTTP_CLIENT_IP");  
+    else if(getenv("HTTP_X_FORWARDED_FOR"))  
+        $ip = getenv("HTTP_X_FORWARDED_FOR");  
+    else if(getenv("REMOTE_ADDR"))  
+        $ip = getenv("REMOTE_ADDR");  
+    else $ip = "127.0.0.1";  
+    return $ip;  
+}  
+
+
+
 //Initialise variables
 $user = $_REQUEST["user"];
 $pass = md5($_REQUEST["pass"]);
@@ -34,10 +56,14 @@ else
     $type = $_REQUEST["type"];
 
 if(!isset($_REQUEST["ip"]))
-    $ip = $_SERVER["REMOTE_ADDR"];
+    $ip = getClientIP();
 else
     $ip = $_REQUEST["ip"];
 
+
+//=============================================================
+//
+//=============================================================
 
 
 if($FQDN){  //paras test

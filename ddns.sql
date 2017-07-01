@@ -1,0 +1,67 @@
+SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+SET time_zone = "+00:00";
+
+/**
+ * This is the table structure for the ddns scirpts
+ *
+ * version 1.0
+ */
+
+
+CREATE TABLE `RR` (
+  `SN` int(20) NOT NULL,
+  `USERNAME` varchar(64) NOT NULL DEFAULT '',
+  `FQDN` varchar(64) NOT NULL DEFAULT '',
+  `TTL` int(5) NOT NULL DEFAULT '60',
+  `TYPE` varchar(10) NOT NULL DEFAULT '',
+  `VALUE` varchar(64) NOT NULL DEFAULT '127.0.0.1',
+  `CREATE_TIME` timestamp(6) NOT NULL,
+  `SOA_Serial` int(10) NOT NULL
+
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+
+CREATE TABLE `RR_LOG` (
+  `SN` int(20) NOT NULL,
+  `USERNAME` varchar(64) NOT NULL DEFAULT '',
+  `FQDN` varchar(64) NOT NULL DEFAULT '',
+  `TTL` int(5) NOT NULL DEFAULT '60',
+  `TYPE` varchar(10) NOT NULL DEFAULT '',
+  `VALUE` varchar(64) NOT NULL DEFAULT '',
+  `CREATE_TIME` timestamp(6) NULL,
+  `SOA_Serial` int(10) NOT NULL
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+
+CREATE TABLE `USER` (
+  `SN` int(20) NOT NULL,
+  `USERNAME` varchar(64) NOT NULL DEFAULT '',
+  `PASSWD` varchar(64) NOT NULL DEFAULT '',
+  `EMAIL` varchar(64) NOT NULL DEFAULT '',
+  `MEMO` varchar(255) NOT NULL DEFAULT ''
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+
+ALTER TABLE `RR`
+  ADD PRIMARY KEY (`SN`),
+  ADD KEY `USERNAME` (`USERNAME`),
+  ADD KEY `FQDN` (`FQDN`);
+
+ALTER TABLE `RR_LOG`
+  ADD PRIMARY KEY (`SN`),
+  ADD KEY `USERNAME` (`USERNAME`),
+  ADD KEY `FQDN` (`FQDN`);
+
+ALTER TABLE `USER`
+  ADD PRIMARY KEY (`SN`);
+
+
+ALTER TABLE `RR`
+  MODIFY `SN` int(20) NOT NULL AUTO_INCREMENT;
+ALTER TABLE `RR_LOG`
+  MODIFY `SN` int(20) NOT NULL AUTO_INCREMENT;
+ALTER TABLE `USER`
+  MODIFY `SN` int(20) NOT NULL AUTO_INCREMENT;
+
+
+/**
+ * Add your login credentials here!
+ */
+INSERT INTO USER (USERNAME, PASSWD) VALUES('USERNAME', md5('PASSWORD'));

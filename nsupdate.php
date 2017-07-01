@@ -8,9 +8,8 @@
 * @version     1.0 
 */  
 
-/**
-* Constant definitions 
-*/
+
+//Constant definitions 
 define("SOA_FILE", "/etc/ddns/SOA_Serial"); //file used to save current SOA Serial number
 define("TIMEZONE", "Australia/Sydney");
 define("DB_HOST", "localhost");
@@ -27,13 +26,15 @@ $db = new mysqli(DB_HOST, DB_USER, DB_PASSWD, DB_DBNAME);
 
 
 /** 
-* SOA_Serial_INC
-* Increse SOA Serial Number. 
-* "yyyymmddxx" where xx indicated diff versions in a single day
-* @version 0.1
-* @since 0.1
-* @return string increased SOA Serial No.
-*/
+ * Increse SOA Serial Number. 
+ *
+ * "yyyymmddxx" where xx indicated diff versions in a single day
+ *
+ * @version 1.0
+ * @since 0.1
+ *
+ * @return string increased SOA Serial No.
+ */
 
 function SOA_Serial_INC(){
     $date = date("Ymd",time());
@@ -59,7 +60,9 @@ function SOA_Serial_INC(){
 }
 
 
-
+//=============================================================
+//
+//=============================================================
 
 $handle = fopen("/tmp/nsupdate.cmd", "w");
 $str = "server 127.0.0.1\r\n";

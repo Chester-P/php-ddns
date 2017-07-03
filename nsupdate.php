@@ -21,7 +21,7 @@ function stdin(){
     $input = fgets($fp, 255);  
     fclose($fp);  
     $input = chop($input);  
-    echo "-----------------------------------------\n"; //to devide input fileds    
+    echo "-----------------------------------------\n"; //to divide input fileds    
     return $input;  
 } 
 
@@ -233,6 +233,7 @@ if($stmt -> num_rows != 0){     //if new records
     @fwrite($handle,$str);
     @fclose($handle);
     exec('nsupdate -v /tmp/nsupdate.cmd');
+    exec('rndc sync -clean');   //put update into zone file, clean Journal file
 }
 
 $stmt -> close();

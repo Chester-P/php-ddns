@@ -1,7 +1,7 @@
 /**
  * This is the table structure for the ddns scirpts
  *
- * version 1.1
+ * version 1.1.1
  */
 
 

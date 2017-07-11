@@ -12,7 +12,7 @@ CREATE TABLE `RR` (
   `TTL` int(5) NOT NULL DEFAULT '60',
   `TYPE` varchar(10) NOT NULL DEFAULT '',
   `VALUE` varchar(64) NOT NULL DEFAULT '127.0.0.1',
-  `CREATE_TIME` timestamp(6) NOT NULL,
+  `CREATE_TIME` datetime,
   `SOA_Serial` int(10) NOT NULL
 
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
@@ -24,7 +24,7 @@ CREATE TABLE `RR_LOG` (
   `TTL` int(5) NOT NULL DEFAULT '60',
   `TYPE` varchar(10) NOT NULL DEFAULT '',
   `VALUE` varchar(64) NOT NULL DEFAULT '',
-  `CREATE_TIME` timestamp(6) NULL,
+  `CREATE_TIME` datetime,
   `SOA_Serial` int(10) NOT NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 

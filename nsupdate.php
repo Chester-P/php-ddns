@@ -207,7 +207,7 @@ $stmt -> store_result();
 $updated_SNs = array();
 if($stmt -> num_rows != 0){     //if new records
     while($stmt -> fetch()){
-        $str = "update delete $FQDN $type\r\n";
+        $str = "update delete $FQDN\r\n";
         $str .= "update add $FQDN $TTL IN $type $value\r\n";
         @fwrite($handle, $str);
         array_push($updated_SNs, $SN);

@@ -69,8 +69,8 @@ if($FQDN){  //paras test
     if ($stmt -> num_rows == 1){
        //echo "login success";
        $stmt -> close();
-       $stmt = $db -> prepare("SELECT VALUE FROM RR WHERE FQDN=? and TYPE=?");
-       $stmt -> bind_param("ss", $FQDN, $type);
+       $stmt = $db -> prepare("SELECT VALUE FROM RR WHERE FQDN=?");
+       $stmt -> bind_param("s", $FQDN);
        $stmt -> execute(); 
        $stmt -> bind_result($old_ip);
        $stmt -> fetch();

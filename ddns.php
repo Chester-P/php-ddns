@@ -69,20 +69,20 @@ if($FQDN){  //paras test
     if ($stmt -> num_rows == 1){
        //echo "login success";
        $stmt -> close();
-       $stmt = $db -> prepare("SELECT VALUE FROM RR WHERE FQDN=?");
+       $stmt = $db -> prepare("SELECT VALUE, TYPE FROM RR WHERE FQDN=?");
        $stmt -> bind_param("s", $FQDN);
        $stmt -> execute(); 
-       $stmt -> bind_result($old_ip);
+       $stmt -> bind_result($old_ip, $old_type);
        $stmt -> fetch();
        if($old_ip){   //Record exists, Update
-            if($old_ip != $ip){ //Record changed, write log
+            if($old_ip != $ip || $old_type != $type){ //Record changed, update record value and type
                 $stmt -> close();
-                $stmt = $db -> prepare("INSERT INTO RR_LOG(USERNAME, FQDN, TTL, TYPE, VALUE, CREATE_TIME, SOA_Serial) SELECT USERNAME, FQDN, TTL, TYPE, VALUE, CREATE_TIME, SOA_Serial FROM RR WHERE FQDN = ? and TYPE = ?");
-                $stmt -> bind_param("ss", $FQDN, $type);
+                $stmt = $db -> prepare("INSERT INTO RR_LOG(USERNAME, FQDN, TTL, TYPE, VALUE, CREATE_TIME, SOA_Serial) SELECT USERNAME, FQDN, TTL, TYPE, VALUE, CREATE_TIME, SOA_Serial FROM RR WHERE FQDN = ?"); //write change log
+                $stmt -> bind_param("s", $FQDN);
                 $stmt -> execute();
                 $stmt -> close();
-                $stmt = $db -> prepare("UPDATE RR SET VALUE=?, TTL=?, CREATE_TIME=CURRENT_TIMESTAMP(6), SOA_Serial=0 WHERE FQDN=? and TYPE=?");
-                $stmt -> bind_param("siss", $ip, $ttl, $FQDN, $type);
+                $stmt = $db -> prepare("UPDATE RR SET TYPE=?, VALUE=?, TTL=?, CREATE_TIME=CURRENT_TIMESTAMP(6), SOA_Serial=0 WHERE FQDN=?");
+                $stmt -> bind_param("ssis", $type, $ip, $ttl, $FQDN);
                 if($stmt -> execute())
                     echo "Successfully updated record.";
                 else

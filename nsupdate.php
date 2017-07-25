@@ -94,7 +94,7 @@ if(!file_exists("/etc/ddns/nsupdate-config.php") || (isset($argv[1]) ? $argv[1] 
     $DB_USER = stdin();
     echo "Please input your password.\n";
     $DB_PASSWD = stdin();
-    echo "Please input your databse name used for this ddns script.\n";
+    echo "Please input your database name used for this ddns script.\n";
     $DB_DBNAME = stdin();
     echo "Please input a path to the file to place ddns.php under your webroot\n";
     echo "Press Enter for defualt value. (/var/www/html/)\n";
@@ -154,7 +154,7 @@ define(\"DB_DBNAME\", \"$DB_DBNAME\");
     echo "Initialising database structure.\n";
     $sqlfile = fopen("ddns.sql", "r");
     $sql = fread($sqlfile, filesize("ddns.sql"));
-    $sql .= "INSERT INTO USER (USERNAME, PASSWD) VALUES('$usr', md5('$passwd'));";
+    $sql .= "INSERT INTO user (username, password) VALUES('$usr', md5('$passwd'));";
     $db = new mysqli($DB_HOST, $DB_USER, $DB_PASSWD, $DB_DBNAME);
     $ret = $db -> multi_query($sql); 
     if($ret === false) { 
@@ -200,14 +200,14 @@ $str .= "zone " . ZONE . "\r\n";
 @fwrite($handle, $str);
 
 //Fetch newly updated records
-$stmt = $db -> prepare("SELECT SN, FQDN, TTL, TYPE, VALUE FROM RR WHERE SOA_Serial=0");
+$stmt = $db -> prepare("SELECT SN, FQDN, TTL, type, value FROM RR WHERE SOA_Serial=0");
 $stmt -> execute();
 $stmt -> bind_result($SN, $FQDN, $TTL, $type, $value);
 $stmt -> store_result();
 $updated_SNs = array();
 if($stmt -> num_rows != 0){     //if new records
     while($stmt -> fetch()){
-        $str = "update delete $FQDN\r\n";
+        $str = "update delete $FQDN $type\r\n";
         $str .= "update add $FQDN $TTL IN $type $value\r\n";
         @fwrite($handle, $str);
         array_push($updated_SNs, $SN);

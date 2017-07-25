@@ -1,7 +1,8 @@
 <?php
 /** 
  * ddns.php
- * This page is used to receive DDNS requests and record these requests into local MySQL DB
+ * This page is used to receive DDNS requests and record 
+ * these requests into local MySQL DB.
  * 
  *
  * @author      Chester Pang<bo@bearpang.com> 
@@ -15,19 +16,19 @@
  *
  * @since 1.0
  *
- * @return string $ip    User's ip address
+ * @return string $value    User's ip address
  */
 
 function getClientIP()  
 {  
     if (getenv("HTTP_CLIENT_IP"))  
-        $ip = getenv("HTTP_CLIENT_IP");  
+        $value = getenv("HTTP_CLIENT_IP");  
     else if(getenv("HTTP_X_FORWARDED_FOR"))  
-        $ip = getenv("HTTP_X_FORWARDED_FOR");  
+        $value = getenv("HTTP_X_FORWARDED_FOR");  
     else if(getenv("REMOTE_ADDR"))  
-        $ip = getenv("REMOTE_ADDR");  
-    else $ip = "127.0.0.1";  
-    return $ip;  
+        $value = getenv("REMOTE_ADDR");  
+    else $value = "127.0.0.1";  
+    return $value;  
 }  
 
 
@@ -49,10 +50,10 @@ if(!isset($_REQUEST["type"]))
 else
     $type = $_REQUEST["type"];
 
-if(!isset($_REQUEST["ip"]))
-    $ip = getClientIP();
+if(!isset($_REQUEST["value"]))
+    $value = getClientIP();
 else
-    $ip = $_REQUEST["ip"];
+    $value = $_REQUEST["value"];
 
 
 //=============================================================
@@ -62,27 +63,31 @@ else
 
 if($FQDN){  //paras test
     $db = new mysqli(DB_HOST, DB_USER, DB_PASSWD, DB_DBNAME);
-    $stmt = $db -> prepare("SELECT 1 FROM USER WHERE USERNAME=? AND PASSWD=?");
+    $stmt = $db -> prepare("SELECT 1 FROM user WHERE username=? AND password=?");
     $stmt -> bind_param("ss", $user, $pass);
     $stmt -> execute();
     $stmt -> store_result();
     if ($stmt -> num_rows == 1){
        //echo "login success";
        $stmt -> close();
-       $stmt = $db -> prepare("SELECT VALUE, TYPE FROM RR WHERE FQDN=?");
+       $stmt = $db -> prepare("SELECT value, type FROM RR WHERE FQDN=?");
        $stmt -> bind_param("s", $FQDN);
        $stmt -> execute(); 
        $stmt -> bind_result($old_ip, $old_type);
        $stmt -> fetch();
        if($old_ip){   //Record exists, Update
-            if($old_ip != $ip || $old_type != $type){ //Record changed, update record value and type
+            if($old_ip != $value || $old_type != $type){ //Record changed, update record value and type
                 $stmt -> close();
-                $stmt = $db -> prepare("INSERT INTO RR_LOG(USERNAME, FQDN, TTL, TYPE, VALUE, CREATE_TIME, SOA_Serial) SELECT USERNAME, FQDN, TTL, TYPE, VALUE, CREATE_TIME, SOA_Serial FROM RR WHERE FQDN = ?"); //write change log
+                //write change log
+                $stmt = $db -> prepare(
+                    "INSERT INTO RR_LOG(username, FQDN, TTL, type, value, create_time, SOA_Serial) ".
+                    "SELECT username, FQDN, TTL, type, value, create_time, SOA_Serial FROM RR WHERE FQDN = ?"); 
                 $stmt -> bind_param("s", $FQDN);
                 $stmt -> execute();
                 $stmt -> close();
-                $stmt = $db -> prepare("UPDATE RR SET TYPE=?, VALUE=?, TTL=?, CREATE_TIME=CURRENT_TIMESTAMP(6), SOA_Serial=0 WHERE FQDN=?");
-                $stmt -> bind_param("ssis", $type, $ip, $ttl, $FQDN);
+                $stmt = $db -> prepare
+                    ("UPDATE RR SET type=?, value=?, TTL=?, create_time=CURRENT_TIMESTAMP(6), SOA_Serial=0 WHERE FQDN=?");
+                $stmt -> bind_param("ssis", $type, $value, $ttl, $FQDN);
                 if($stmt -> execute())
                     echo "Successfully updated record.";
                 else
@@ -91,7 +96,7 @@ if($FQDN){  //paras test
             }
             else{               //Record value remians the same, update timestamp
                 $stmt -> close();
-                $stmt = $db -> prepare("UPDATE RR SET CREATE_TIME=CURRENT_TIMESTAMP(6) WHERE FQDN=? and TYPE=?");
+                $stmt = $db -> prepare("UPDATE RR SET create_time=CURRENT_TIMESTAMP(6) WHERE FQDN=? and type=?");
                 $stmt -> bind_param("ss", $FQDN, $type);
                 if($stmt -> execute())
                     echo "IP is not changed, successfully updated timestamp.";
@@ -103,8 +108,9 @@ if($FQDN){  //paras test
        }
        else{    //Records does not exist, Insert
             $stmt -> close();
-            $stmt = $db -> prepare("INSERT INTO RR (USERNAME, FQDN, TYPE, VALUE, TTL, CREATE_TIME) VALUES(?, ?, ?, ?, ?, CURRENT_TIMESTAMP(6))");
-            $stmt -> bind_param("ssssi", $user, $FQDN, $type, $ip, $ttl);
+            $stmt = $db -> prepare
+                ("INSERT INTO RR (username, FQDN, type, value, TTL, create_time) VALUES(?, ?, ?, ?, ?, CURRENT_TIMESTAMP(6))");
+            $stmt -> bind_param("ssssi", $user, $FQDN, $type, $value, $ttl);
             if($stmt -> execute()){
                 echo "Successfully inserted record.";
             }

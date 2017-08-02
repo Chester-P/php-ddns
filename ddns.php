@@ -5,7 +5,7 @@
  * these requests into local MySQL DB.
  * 
  *
- * @author      Chester Pang<bo@bearpang.com> 
+ * @author      Chester Pang <bo@bearpang.com> 
  * @version     1.1
  */  
 
@@ -59,6 +59,14 @@ else
 //=============================================================
 //
 //=============================================================
+
+/**
+ * To do list:
+ *      multiple zone support
+ *      zone-specific auth for diff accounts
+ *      delete records support
+ *      
+ */
 
 
 if($FQDN){  //paras test

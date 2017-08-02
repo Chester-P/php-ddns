@@ -4,7 +4,7 @@
  * nsupdate.php
  * This script is used to update records on local dns server from data in MySQL ddns DB
  *
- * @author      Chester Pang<bo@bearpang.com> 
+ * @author      Chester Pang <bo@bearpang.com> 
  * @version     1.1
  */  
 

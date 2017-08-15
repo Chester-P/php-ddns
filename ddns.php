@@ -62,6 +62,7 @@ else
 
 /**
  * To do list:
+ *      change request data format to JSON via 
  *      multiple zone support
  *      zone-specific auth for diff accounts
  *      delete records support
